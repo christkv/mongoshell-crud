@@ -27,6 +27,7 @@ var createTestExecutor = function(instance, method, data, setup, teardown) {
 var data = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
 var findOneData = [{ _id:1, x:11 }];
 var replaceOneData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
+var updateManyData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
 
 // Setup method
 var setup = function(col, method, data) {
@@ -43,6 +44,7 @@ var findOneAndUpdateExecutor = createTestExecutor(col, 'findOneAndUpdate', data,
 var insertManyExecutor = createTestExecutor(col, 'insertMany', findOneData, setup);
 var insertOneExecutor = createTestExecutor(col, 'insertOne', findOneData, setup);
 var replaceOneExecutor = createTestExecutor(col, 'replaceOne', replaceOneData, setup);
+var updateManyExecutor = createTestExecutor(col, 'updateMany', updateManyData, setup)
 
 //
 // DeleteMany
@@ -146,4 +148,15 @@ replaceOneExecutor([{ _id: 4 }, { x: 1 }, {upsert:true}], {acknowledged:true, ma
 // ReplaceOne with upsert when no documents match with an id specified
 replaceOneExecutor([{ _id: 4 }, { _id: 4, x: 1 }, {upsert:true}], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
 
+//
+// ReplaceOne
+//
 
+// UpdateMany when many documents match
+updateManyExecutor([{ _id: { $gt: 1 } }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:2, modifiedCount:2}, [{_id:1, x: 11}, {_id:2, x: 23}, {_id:3, x: 34}]);
+// UpdateMany when one document matches
+updateManyExecutor([{ _id: 1 }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:1, modifiedCount:1}, [{_id:1, x: 12}, {_id:2, x: 22}, {_id:3, x: 33}]);
+// UpdateMany when no documents match
+updateManyExecutor([{ _id: 4 }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:0, modifiedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
+// UpdateMany with upsert when no documents match
+updateManyExecutor([{ _id: 4 }, { $inc: { x: 1 } }, { upsert: true }], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
