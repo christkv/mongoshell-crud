@@ -28,6 +28,7 @@ var data = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
 var findOneData = [{ _id:1, x:11 }];
 var replaceOneData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
 var updateManyData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
+var updateOneData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
 
 // Setup method
 var setup = function(col, method, data) {
@@ -45,6 +46,7 @@ var insertManyExecutor = createTestExecutor(col, 'insertMany', findOneData, setu
 var insertOneExecutor = createTestExecutor(col, 'insertOne', findOneData, setup);
 var replaceOneExecutor = createTestExecutor(col, 'replaceOne', replaceOneData, setup);
 var updateManyExecutor = createTestExecutor(col, 'updateMany', updateManyData, setup)
+var updateOneExecutor = createTestExecutor(col, 'updateOne', updateOneData, setup);
 
 //
 // DeleteMany
@@ -149,7 +151,7 @@ replaceOneExecutor([{ _id: 4 }, { x: 1 }, {upsert:true}], {acknowledged:true, ma
 replaceOneExecutor([{ _id: 4 }, { _id: 4, x: 1 }, {upsert:true}], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
 
 //
-// ReplaceOne
+// UpdateMany
 //
 
 // UpdateMany when many documents match
@@ -160,3 +162,16 @@ updateManyExecutor([{ _id: 1 }, { $inc: { x: 1 } }], {acknowledged:true, matched
 updateManyExecutor([{ _id: 4 }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:0, modifiedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
 // UpdateMany with upsert when no documents match
 updateManyExecutor([{ _id: 4 }, { $inc: { x: 1 } }, { upsert: true }], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
+
+//
+// UpdateOne
+//
+
+// UpdateOne when many documents match
+updateOneExecutor([{ _id: { $gt: 1 } }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:1, modifiedCount:1}, [{_id:1, x: 11}, {_id:2, x: 23}, {_id:3, x: 33}]);
+// UpdateOne when one document matches
+updateOneExecutor([{ _id: 1 }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:1, modifiedCount:1}, [{_id:1, x: 12}, {_id:2, x: 22}, {_id:3, x: 33}]);
+// UpdateOne when no documents match
+updateOneExecutor([{ _id: 4 }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:0, modifiedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
+// UpdateOne with upsert when no documents match
+updateOneExecutor([{ _id: 4 }, { $inc: { x: 1 } }, {upsert:true}], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id: 4, x: 1}]);
