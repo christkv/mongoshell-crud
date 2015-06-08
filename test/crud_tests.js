@@ -33,18 +33,38 @@ var setup = function(col, method, data) {
 // Setup executors
 var deleteManyExecutor = createTestExecutor(col, 'deleteMany', data, setup);
 var deleteOneExecutor = createTestExecutor(col, 'deleteOne', data, setup);
+var findOneAndDeleteExecutor = createTestExecutor(col, 'findOneAndDelete', data, setup);
 
 //
-// deleteMany tests
+// DeleteMany
+//
+
+// DeleteMany when many documents match
 deleteManyExecutor([{ _id: { $gt: 1 } }], {deletedCount:2}, [{_id:1, x: 11}]);
+// DeleteMany when no document matches
 deleteManyExecutor([{ _id: 4 }], {deletedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
 
 //
-// deleteOne tests
+// DeleteOne
+//
+
+// DeleteOne when many documents match
 deleteOneExecutor([{ _id: { $gt: 1 } }], {deletedCount:1}, [{_id:1, x: 11}, {_id:3, x: 33}]);
+// DeleteOne when one document matches
 deleteOneExecutor([{ _id: 2 }], {deletedCount:1}, [{_id:1, x: 11}, {_id:3, x: 33}]);
+// DeleteOne when no documents match
 deleteOneExecutor([{ _id: 4 }], {deletedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
 
+//
+// FindOneAndDelete
+//
+
+// FindOneAndDelete when one document matches
+findOneAndDeleteExecutor([{ _id: { $gt: 1 } }, { projection: { x: 1, _id: 0 }, sort: { x: 1 } }], {x:22}, [{_id:1, x: 11}, {_id:3, x: 33}]);
+// FindOneAndDelete when one document matches
+findOneAndDeleteExecutor([{ _id: 2 }, { projection: { x: 1, _id: 0 }, sort: { x: 1 } }], {x:22}, [{_id:1, x: 11}, {_id:3, x: 33}]);
+// FindOneAndDelete when no documents match
+findOneAndDeleteExecutor([{ _id: 4 }, { projection: { x: 1, _id: 0 }, sort: { x: 1 } }], null, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
 
 
 
