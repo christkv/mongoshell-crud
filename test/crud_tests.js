@@ -29,6 +29,8 @@ var findOneData = [{ _id:1, x:11 }];
 var replaceOneData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
 var updateManyData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
 var updateOneData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
+var bulkWriteOrderedData = [{ _id: 1, c: 1 }, { _id: 2, c: 2 }, { _id: 3, c: 3 }];
+var bulkWriteUnOrderedData = [{ _id: 1, c: 1 }, { _id: 2, c: 2 }, { _id: 3, c: 3 }];
 
 // Setup method
 var setup = function(col, method, data) {
@@ -47,26 +49,56 @@ var insertOneExecutor = createTestExecutor(col, 'insertOne', findOneData, setup)
 var replaceOneExecutor = createTestExecutor(col, 'replaceOne', replaceOneData, setup);
 var updateManyExecutor = createTestExecutor(col, 'updateMany', updateManyData, setup)
 var updateOneExecutor = createTestExecutor(col, 'updateOne', updateOneData, setup);
+var bulkOrderedWriteExecutor = createTestExecutor(col, 'bulkWrite', bulkWriteOrderedData, setup);
+var bulkUnOrderedWriteExecutor = createTestExecutor(col, 'bulkWrite', bulkWriteUnOrderedData, setup);
+
+//
+// BulkWrite
+//
+
+bulkOrderedWriteExecutor([[
+      { insertOne: { document: {_id: 4, a: 1 } } }
+    , { updateOne: { filter: {_id: 5, a:2}, update: {$set: {a:2}}, upsert:true } }
+    , { updateMany: { filter: {_id: 6,a:3}, update: {$set: {a:3}}, upsert:true } }
+    , { deleteOne: { filter: {c:1} } }
+    , { deleteMany: { filter: {c:2} } }
+    , { replaceOne: { filter: {c:3}, replacement: {c:4}, upsert:true } }]], {
+      acknowledged: true, insertedCount:1, matchedCount:1, deletedCount:2, upsertedCount:2, insertedIds : {'0' : 4 }, upsertedIds : { '1' : 5, '2' : 6 }
+    }, [{ "_id" : 3, "c" : 4 }, { "_id" : 4, "a" : 1 }, { "_id" : 5, "a" : 2 }, { "_id" : 6, "a" : 3 }]);
+
+bulkUnOrderedWriteExecutor([[
+      { insertOne: { document: { _id: 4, a: 1 } } }
+    , { updateOne: { filter: {_id: 5, a:2}, update: {$set: {a:2}}, upsert:true } }
+    , { updateMany: { filter: {_id: 6, a:3}, update: {$set: {a:3}}, upsert:true } }
+    , { deleteOne: { filter: {c:1} } }
+    , { deleteMany: { filter: {c:2} } }
+    , { replaceOne: { filter: {c:3}, replacement: {c:4}, upsert:true } }], { ordered: false }], {
+      acknowledged: true, insertedCount:1, matchedCount:1, deletedCount:2, upsertedCount:2, insertedIds : {'0' : 4 }, upsertedIds : { '1' : 5, '2' : 6 }
+    }, [{ "_id" : 3, "c" : 4 }, { "_id" : 4, "a" : 1 }, { "_id" : 5, "a" : 2 }, { "_id" : 6, "a" : 3 }]);
 
 //
 // DeleteMany
 //
 
 // DeleteMany when many documents match
-deleteManyExecutor([{ _id: { $gt: 1 } }], {deletedCount:2}, [{_id:1, x: 11}]);
+deleteManyExecutor([{ _id: { $gt: 1 } }], {acknowledged: true, deletedCount:2}, [{_id:1, x: 11}]);
 // DeleteMany when no document matches
-deleteManyExecutor([{ _id: 4 }], {deletedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
+deleteManyExecutor([{ _id: 4 }], {acknowledged: true, deletedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
+// DeleteMany when many documents match, no write concern
+deleteManyExecutor([{ _id: { $gt: 1 } }, { w : 0 }], {acknowledged: false}, [{_id:1, x: 11}]);
 
 //
 // DeleteOne
 //
 
 // DeleteOne when many documents match
-deleteOneExecutor([{ _id: { $gt: 1 } }], {deletedCount:1}, [{_id:1, x: 11}, {_id:3, x: 33}]);
+deleteOneExecutor([{ _id: { $gt: 1 } }], {acknowledged: true, deletedCount:1}, [{_id:1, x: 11}, {_id:3, x: 33}]);
 // DeleteOne when one document matches
-deleteOneExecutor([{ _id: 2 }], {deletedCount:1}, [{_id:1, x: 11}, {_id:3, x: 33}]);
+deleteOneExecutor([{ _id: 2 }], {acknowledged: true, deletedCount:1}, [{_id:1, x: 11}, {_id:3, x: 33}]);
 // DeleteOne when no documents match
-deleteOneExecutor([{ _id: 4 }], {deletedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
+deleteOneExecutor([{ _id: 4 }], {acknowledged: true, deletedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
+// DeleteOne when many documents match, no write concern
+deleteOneExecutor([{ _id: { $gt: 1 } }, {w:0}], {acknowledged: false}, [{_id:1, x: 11}, {_id:3, x: 33}]);
 
 //
 // FindOneAndDelete
@@ -127,6 +159,8 @@ findOneAndUpdateExecutor([{ _id: 4 }, { $inc: { x: 1 } }, { projection: { x: 1, 
 
 // InsertMany with non-existing documents
 insertManyExecutor([[{_id: 2, x: 22}, {_id:3, x:33}]], {acknowledged: true, insertedIds: [2, 3]}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
+// InsertMany with non-existing documents, no write concern
+insertManyExecutor([[{_id: 2, x: 22}, {_id:3, x:33}], {w:0}], {acknowledged: false}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
 
 //
 // InsertOne
@@ -134,6 +168,8 @@ insertManyExecutor([[{_id: 2, x: 22}, {_id:3, x:33}]], {acknowledged: true, inse
 
 // InsertMany with non-existing documents
 insertOneExecutor([{_id: 2, x: 22}], {acknowledged: true, insertedId: 2}, [{_id:1, x: 11}, {_id:2, x: 22}]);
+// InsertMany with non-existing documents, no write concern
+insertOneExecutor([{_id: 2, x: 22}, {w:0}], {acknowledged: false}, [{_id:1, x: 11}, {_id:2, x: 22}]);
 
 //
 // ReplaceOne
@@ -149,6 +185,10 @@ replaceOneExecutor([{ _id: 4 }, { _id: 4, x: 1 }], {acknowledged:true, matchedCo
 replaceOneExecutor([{ _id: 4 }, { x: 1 }, {upsert:true}], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
 // ReplaceOne with upsert when no documents match with an id specified
 replaceOneExecutor([{ _id: 4 }, { _id: 4, x: 1 }, {upsert:true}], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
+// ReplaceOne with upsert when no documents match with an id specified, no write concern
+replaceOneExecutor([{ _id: 4 }, { _id: 4, x: 1 }, {upsert:true, w:0}], {acknowledged:false}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
+// ReplaceOne with upsert when no documents match with an id specified, no write concern
+replaceOneExecutor([{ _id: 4 }, { _id: 4, x: 1 }, {upsert:true, writeConcern:{w:0}}], {acknowledged:false}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
 
 //
 // UpdateMany
@@ -162,6 +202,8 @@ updateManyExecutor([{ _id: 1 }, { $inc: { x: 1 } }], {acknowledged:true, matched
 updateManyExecutor([{ _id: 4 }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:0, modifiedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
 // UpdateMany with upsert when no documents match
 updateManyExecutor([{ _id: 4 }, { $inc: { x: 1 } }, { upsert: true }], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
+// UpdateMany with upsert when no documents match, no write concern
+updateManyExecutor([{ _id: 4 }, { $inc: { x: 1 } }, { upsert: true, w: 0 }], {acknowledged:false}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id:4, x: 1}]);
 
 //
 // UpdateOne
@@ -175,3 +217,5 @@ updateOneExecutor([{ _id: 1 }, { $inc: { x: 1 } }], {acknowledged:true, matchedC
 updateOneExecutor([{ _id: 4 }, { $inc: { x: 1 } }], {acknowledged:true, matchedCount:0, modifiedCount:0}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}]);
 // UpdateOne with upsert when no documents match
 updateOneExecutor([{ _id: 4 }, { $inc: { x: 1 } }, {upsert:true}], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id: 4, x: 1}]);
+// UpdateOne when many documents match, no write concern
+updateOneExecutor([{ _id: { $gt: 1 } }, { $inc: { x: 1 } }, {w:0}], {acknowledged:false}, [{_id:1, x: 11}, {_id:2, x: 23}, {_id:3, x: 33}]);
