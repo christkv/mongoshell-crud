@@ -52,6 +52,17 @@ var updateOneExecutor = createTestExecutor(col, 'updateOne', updateOneData, setu
 var bulkOrderedWriteExecutor = createTestExecutor(col, 'bulkWrite', bulkWriteOrderedData, setup);
 var bulkUnOrderedWriteExecutor = createTestExecutor(col, 'bulkWrite', bulkWriteUnOrderedData, setup);
 
+//                                                                                                     888               
+//  .d8888b.                        888      888       888         d8b 888                  .d88888b.                    
+// d88P  Y88b                       888      888   o   888         Y8P 888                 d88P" "Y88b                   
+// 888    888                       888      888  d8b  888             888                 888     888                   
+// 888        888d888 888  888  .d88888      888 d888b 888 888d888 888 888888 .d88b.       888     888 88888b.  .d8888b  
+// 888        888P"   888  888 d88" 888      888d88888b888 888P"   888 888   d8P  Y8b      888     888 888 "88b 88K      
+// 888    888 888     888  888 888  888      88888P Y88888 888     888 888   88888888      888     888 888  888 "Y8888b. 
+// Y88b  d88P 888     Y88b 888 Y88b 888      8888P   Y8888 888     888 Y88b. Y8b.          Y88b. .d88P 888 d88P      X88 
+//  "Y8888P"  888      "Y88888  "Y88888      888P     Y888 888     888  "Y888 "Y8888        "Y88888P"  88888P"   88888P' 
+//                                                                                                     888               
+
 //
 // BulkWrite
 //
@@ -219,3 +230,45 @@ updateOneExecutor([{ _id: 4 }, { $inc: { x: 1 } }], {acknowledged:true, matchedC
 updateOneExecutor([{ _id: 4 }, { $inc: { x: 1 } }, {upsert:true}], {acknowledged:true, matchedCount:0, modifiedCount:0, upsertedId: 4}, [{_id:1, x: 11}, {_id:2, x: 22}, {_id:3, x: 33}, {_id: 4, x: 1}]);
 // UpdateOne when many documents match, no write concern
 updateOneExecutor([{ _id: { $gt: 1 } }, { $inc: { x: 1 } }, {w:0}], {acknowledged:false}, [{_id:1, x: 11}, {_id:2, x: 23}, {_id:3, x: 33}]);
+
+//                                                                                                     888               
+//  .d8888b.                        888      8888888b.                        888       .d88888b.                    
+// d88P  Y88b                       888      888   Y88b                       888      d88P" "Y88b                   
+// 888    888                       888      888    888                       888      888     888                   
+// 888        888d888 888  888  .d88888      888   d88P .d88b.   8888b.   .d88888      888     888 88888b.  .d8888b  
+// 888        888P"   888  888 d88" 888      8888888P" d8P  Y8b     "88b d88" 888      888     888 888 "88b 88K      
+// 888    888 888     888  888 888  888      888 T88b  88888888 .d888888 888  888      888     888 888  888 "Y8888b. 
+// Y88b  d88P 888     Y88b 888 Y88b 888      888  T88b Y8b.     888  888 Y88b 888      Y88b. .d88P 888 d88P      X88 
+//  "Y8888P"  888      "Y88888  "Y88888      888   T88b "Y8888  "Y888888  "Y88888       "Y88888P"  88888P"   88888P' 
+//                                                                                                     888               
+
+var data = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
+
+// Setup method
+var setup = function(col, method, data) {
+  col.remove({});
+  col.insertMany(data);  
+}
+
+// Setup executors
+var countExecutor = createTestExecutor(col, 'count', data, setup);
+
+//
+// Count
+//
+
+// Simple count of all elements
+countExecutor([{}], 3, data);
+// Simple count no arguments
+countExecutor([], 3, data);
+// Simple count filtered
+countExecutor([{_id: {$gt: 1}}], 2, data);
+// Simple count of all elements, applying limit
+countExecutor([{}, {limit:1}], 1, data);
+// Simple count of all elements, applying skip
+countExecutor([{}, {skip:1}], 2, data);
+// Simple count no arguments, applying hint
+countExecutor([{}, {hint: "_id"}], 3, data);
+
+
+
