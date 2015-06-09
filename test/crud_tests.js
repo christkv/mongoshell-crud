@@ -243,6 +243,7 @@ updateOneExecutor([{ _id: { $gt: 1 } }, { $inc: { x: 1 } }, {w:0}], {acknowledge
 //                                                                                                     888               
 
 var data = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
+var distinctData = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
 
 // Setup method
 var setup = function(col, method, data) {
@@ -252,6 +253,7 @@ var setup = function(col, method, data) {
 
 // Setup executors
 var countExecutor = createTestExecutor(col, 'count', data, setup);
+var distinctExecutor = createTestExecutor(col, 'distinct', distinctData, setup);
 
 //
 // Count
@@ -270,5 +272,17 @@ countExecutor([{}, {skip:1}], 2, data);
 // Simple count no arguments, applying hint
 countExecutor([{}, {hint: "_id"}], 3, data);
 
+//
+// Distinct
+//
+
+// Simple distinct of field x no filter
+distinctExecutor(['x'], [11, 22, 33], data);
+// Simple distinct of field x
+distinctExecutor(['x', {}], [11, 22, 33], data);
+// Simple distinct of field x filtered
+distinctExecutor(['x', {x: { $gt: 11 }}], [22, 33], data);
+// Simple distinct of field x filtered with maxTimeMS
+distinctExecutor(['x', {x: { $gt: 11 }}, {maxTimeMS:100}], [22, 33], data);
 
 
