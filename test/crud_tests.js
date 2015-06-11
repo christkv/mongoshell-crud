@@ -319,3 +319,23 @@ assert(cursor._options == 16);
 // oplogReplay
 var cursor = col.find({}).oplogReplay();
 assert(cursor._options == 8);
+
+//
+// Aggregation
+//
+
+col.deleteMany({});
+// Insert all of them
+col.insertMany([{a:0, b:0}, {a:1, b:1}]);
+
+// Simple aggregation with useCursor
+var result = col.aggregate([{$match: {}}], {useCursor:true}).toArray();
+assert(result.length == 2);
+
+// Simple aggregation with batchSize
+var result = col.aggregate([{$match: {}}], {batchSize:2}).toArray();
+assert(result.length == 2);
+
+// Set the maxTimeMS and allowDiskUse on aggregation query
+var result = col.aggregate([{$match: {}}], {batchSize:2, maxTimeMS:100, allowDiskUse:true}).toArray();
+assert(result.length == 2);
