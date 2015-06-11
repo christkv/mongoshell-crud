@@ -24,6 +24,7 @@ var createTestExecutor = function(instance, method, data, setup, teardown) {
   }
 }
 
+// All the data used for the tests
 var data = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
 var findOneData = [{ _id:1, x:11 }];
 var replaceOneData = [{ _id: 1, x: 11 }, { _id: 2, x: 22 }, { _id:3, x:33 }];
@@ -35,7 +36,7 @@ var bulkWriteUnOrderedData = [{ _id: 1, c: 1 }, { _id: 2, c: 2 }, { _id: 3, c: 3
 // Setup method
 var setup = function(col, method, data) {
   col.remove({});
-  col.insertMany(data);  
+  col.insertMany(data);
 }
 
 // Setup executors
@@ -52,16 +53,16 @@ var updateOneExecutor = createTestExecutor(col, 'updateOne', updateOneData, setu
 var bulkOrderedWriteExecutor = createTestExecutor(col, 'bulkWrite', bulkWriteOrderedData, setup);
 var bulkUnOrderedWriteExecutor = createTestExecutor(col, 'bulkWrite', bulkWriteUnOrderedData, setup);
 
-//                                                                                                     888               
-//  .d8888b.                        888      888       888         d8b 888                  .d88888b.                    
-// d88P  Y88b                       888      888   o   888         Y8P 888                 d88P" "Y88b                   
-// 888    888                       888      888  d8b  888             888                 888     888                   
-// 888        888d888 888  888  .d88888      888 d888b 888 888d888 888 888888 .d88b.       888     888 88888b.  .d8888b  
-// 888        888P"   888  888 d88" 888      888d88888b888 888P"   888 888   d8P  Y8b      888     888 888 "88b 88K      
-// 888    888 888     888  888 888  888      88888P Y88888 888     888 888   88888888      888     888 888  888 "Y8888b. 
-// Y88b  d88P 888     Y88b 888 Y88b 888      8888P   Y8888 888     888 Y88b. Y8b.          Y88b. .d88P 888 d88P      X88 
-//  "Y8888P"  888      "Y88888  "Y88888      888P     Y888 888     888  "Y888 "Y8888        "Y88888P"  88888P"   88888P' 
-//                                                                                                     888               
+//                                                                                                     888
+//  .d8888b.                        888      888       888         d8b 888                  .d88888b.
+// d88P  Y88b                       888      888   o   888         Y8P 888                 d88P" "Y88b
+// 888    888                       888      888  d8b  888             888                 888     888
+// 888        888d888 888  888  .d88888      888 d888b 888 888d888 888 888888 .d88b.       888     888 88888b.  .d8888b
+// 888        888P"   888  888 d88" 888      888d88888b888 888P"   888 888   d8P  Y8b      888     888 888 "88b 88K
+// 888    888 888     888  888 888  888      88888P Y88888 888     888 888   88888888      888     888 888  888 "Y8888b.
+// Y88b  d88P 888     Y88b 888 Y88b 888      8888P   Y8888 888     888 Y88b. Y8b.          Y88b. .d88P 888 d88P      X88
+//  "Y8888P"  888      "Y88888  "Y88888      888P     Y888 888     888  "Y888 "Y8888        "Y88888P"  88888P"   88888P'
+//                                                                                                     888
 
 //
 // BulkWrite
@@ -231,16 +232,16 @@ updateOneExecutor([{ _id: 4 }, { $inc: { x: 1 } }, {upsert:true}], {acknowledged
 // UpdateOne when many documents match, no write concern
 updateOneExecutor([{ _id: { $gt: 1 } }, { $inc: { x: 1 } }, {w:0}], {acknowledged:false}, [{_id:1, x: 11}, {_id:2, x: 23}, {_id:3, x: 33}]);
 
-//                                                                                                     888               
-//  .d8888b.                        888      8888888b.                        888       .d88888b.                    
-// d88P  Y88b                       888      888   Y88b                       888      d88P" "Y88b                   
-// 888    888                       888      888    888                       888      888     888                   
-// 888        888d888 888  888  .d88888      888   d88P .d88b.   8888b.   .d88888      888     888 88888b.  .d8888b  
-// 888        888P"   888  888 d88" 888      8888888P" d8P  Y8b     "88b d88" 888      888     888 888 "88b 88K      
-// 888    888 888     888  888 888  888      888 T88b  88888888 .d888888 888  888      888     888 888  888 "Y8888b. 
-// Y88b  d88P 888     Y88b 888 Y88b 888      888  T88b Y8b.     888  888 Y88b 888      Y88b. .d88P 888 d88P      X88 
-//  "Y8888P"  888      "Y88888  "Y88888      888   T88b "Y8888  "Y888888  "Y88888       "Y88888P"  88888P"   88888P' 
-//                                                                                                     888               
+//                                                                                                     888
+//  .d8888b.                        888      8888888b.                        888       .d88888b.
+// d88P  Y88b                       888      888   Y88b                       888      d88P" "Y88b
+// 888    888                       888      888    888                       888      888     888
+// 888        888d888 888  888  .d88888      888   d88P .d88b.   8888b.   .d88888      888     888 88888b.  .d8888b
+// 888        888P"   888  888 d88" 888      8888888P" d8P  Y8b     "88b d88" 888      888     888 888 "88b 88K
+// 888    888 888     888  888 888  888      888 T88b  88888888 .d888888 888  888      888     888 888  888 "Y8888b.
+// Y88b  d88P 888     Y88b 888 Y88b 888      888  T88b Y8b.     888  888 Y88b 888      Y88b. .d88P 888 d88P      X88
+//  "Y8888P"  888      "Y88888  "Y88888      888   T88b "Y8888  "Y888888  "Y88888       "Y88888P"  88888P"   88888P'
+//                                                                                                     888
 
 var data = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
 var distinctData = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
@@ -248,7 +249,7 @@ var distinctData = [{ _id: 1, x:11 }, { _id: 2, x:22 }, { _id: 3, x:33 }];
 // Setup method
 var setup = function(col, method, data) {
   col.remove({});
-  col.insertMany(data);  
+  col.insertMany(data);
 }
 
 // Setup executors
@@ -285,4 +286,36 @@ distinctExecutor(['x', {x: { $gt: 11 }}], [22, 33], data);
 // Simple distinct of field x filtered with maxTimeMS
 distinctExecutor(['x', {x: { $gt: 11 }}, {maxTimeMS:100}], [22, 33], data);
 
+//
+// Find
+//
 
+col.deleteMany({});
+// Insert all of them
+col.insertMany([{a:0, b:0}, {a:1, b:1}]);
+
+// Simple projection
+var result = col.find({}).sort({a:1}).limit(1).skip(1).projection({_id:0, a:1}).toArray();
+assert.docEq(result, [{a:1}]);
+
+// Simple tailable cursor, should fail
+var cursor = col.find({}).sort({a:1}).tailable();
+assert(cursor._options == 34);
+var cursor = col.find({}).sort({a:1}).tailable(false);
+assert(cursor._options == 2);
+
+// Check modifiers
+var cursor = col.find({}).modifiers({$hint:'a_1'});
+assert(cursor._query['$hint'] == 'a_1');
+
+// allowPartialResults
+var cursor = col.find({}).allowPartialResults();
+assert(cursor._options == 128);
+
+// noCursorTimeout
+var cursor = col.find({}).noCursorTimeout();
+assert(cursor._options == 16);
+
+// oplogReplay
+var cursor = col.find({}).oplogReplay();
+assert(cursor._options == 8);
