@@ -722,6 +722,11 @@
             { insertOne: { document: { _id: 4, a: 0 } } }
           ]);
         });
+coll.deleteOne({a:1}, {w:1000, wtimeout:1});
+        // Show throw write concern error
+        assert.throws(function() {
+          coll.deleteOne({a:1}, {w:1000, wtimeout:1});
+        });
     }
 
     crudAPISpecTests();
